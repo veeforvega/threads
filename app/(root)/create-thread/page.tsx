@@ -1,4 +1,5 @@
 
+import { fetchUser } from "@/lib/actions/users.actions";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
@@ -8,6 +9,8 @@ async function Page() {
     if (!user) return null;
 
     const userInfo = await fetchUser(user.id)
+
+    if (!userInfo) redirect('/onboarding')
 
     return <h1 className="head-text">Create Thread</h1>
 }
