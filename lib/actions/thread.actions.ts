@@ -43,10 +43,10 @@ export async function fetchPosts(pageNumber = 1, pageSize = 20) {
 
         //Fetch the posts that have no parents (top-level threads)
         const postsQuery = Thread.find({ parentId: { $in: [null, undefined] }})
-            .sort({ createdAt: 'desc' })
+            .sort({ createdAt: "desc" })
             .skip(skipAmount)
             .limit(pageSize)
-            .populate({ path: 'author', model: User })
+            .populate({ path: "author", model: User })
             .populate({ 
                 path: "children", 
                 populate: {
@@ -115,11 +115,9 @@ export async function addCommentToThread(
   ) {
     connectToDB();
 
-    try {
-        
+    try {  
         // Find the original thread by its ID
         const originalThread = await Thread.findById(threadId);
-        console.log('here now')
     
         if (!originalThread) {
             throw new Error("Thread not found");
@@ -152,4 +150,30 @@ export async function addCommentToThread(
         } catch (error: any) {
             console.error(`Error while adding comment: ${error.message}`);
         }   
-  }
+}
+
+export async function fetchUserPosts(userId: string) {
+    try {
+        connectToDB();
+        //TODO populate community
+        //Find all threads authored by the user
+        const threads = await User.findOne({ id:userId })
+            .populate({
+                path: "threads",
+                model: Thread,
+                populate: {
+                    path: "children",
+                    model: Thread,
+                    populate: {
+                        path: "author",
+                        model: User,
+                        select: "name image id"
+                    }
+                }
+            })
+
+            return threads;
+    } catch (error:any) {
+        throw new Error(`Failed to fetch posts: ${error.message}`);
+    }
+}
