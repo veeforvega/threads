@@ -8,7 +8,7 @@ interface Props {
     imgUrl: string;
     bio: string;
     // type?: string;
-  }
+}
   
 function ProfileHeader({
     accountId,
