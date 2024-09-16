@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
-import { fetchUser, fetchUsers } from "@/lib/actions/users.actions";
+import { fetchUser, fetchUsers } from "@/lib/actions/user.actions";
 import UserCard from "@/components/cards/UserCard";
 
 async function Page(){

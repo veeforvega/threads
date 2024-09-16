@@ -2,7 +2,7 @@
 
 import { connectToDB } from "../mongoose";
 import Thread from "../models/thread.model";
-import User from "../models/users.model";
+import User from "../models/user.model";
 import { revalidatePath } from "next/cache";
 
 interface Params {
