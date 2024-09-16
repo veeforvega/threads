@@ -3,6 +3,7 @@
 import { connectToDB } from "../mongoose";
 import Thread from "../models/thread.model";
 import User from "../models/user.model";
+import Community from "../models/community.model";
 import { revalidatePath } from "next/cache";
 
 interface Params {
@@ -16,16 +17,28 @@ export async function createThread({text, author, communityId, path}: Params){
     try {
         connectToDB();
 
+        const communityIdObject = await Community.findOne(
+            { id: communityId },
+            { _id: 1 }
+        );
+
         const createdThread = await Thread.create({
             text,
             author,
-            community: null,
+            community: communityIdObject,
         });
     
         // Update user model
         await User.findByIdAndUpdate(author, {
             $push: { threads: createdThread._id }
         });
+
+        if (communityIdObject) {
+            // Update Community model
+            await Community.findByIdAndUpdate(communityIdObject, {
+                $push: { threads: createdThread._id },
+            });
+        }
     
         revalidatePath(path);
         
@@ -47,6 +60,10 @@ export async function fetchPosts(pageNumber = 1, pageSize = 20) {
             .skip(skipAmount)
             .limit(pageSize)
             .populate({ path: "author", model: User })
+            .populate({
+                path: "community",
+                model: Community,
+            })
             .populate({ 
                 path: "children", 
                 populate: {
@@ -76,11 +93,11 @@ export async function fetchThreadById(threadId: string) {
                 model: User,
                 select: "_id id name image",
             }) // Populate the author field with _id and username
-            // .populate({
-            //     path: "community",
-            //     model: Community,
-            //     select: "_id id name image",
-            // }) // Populate the community field with _id and name
+            .populate({
+                path: "community",
+                model: Community,
+                select: "_id id name image",
+            }) // Populate the community field with _id and name
             .populate({
                 path: "children", // Populate the children field
                 populate: [
@@ -129,15 +146,6 @@ export async function addCommentToThread(
             author: userId,
             parentId: threadId
         });
-
-        // const commentThread = new Thread({
-        //     text: commentText,
-        //     author: userId,
-        //     parentId: threadId, // Set the parentId to the original thread's ID
-        // });
-    
-        // Save the comment thread to the database
-        // const savedCommentThread = await commentThread.save();
     
         // Add the comment thread's ID to the original thread's children array
         originalThread.children.push(createdThread._id);
@@ -150,30 +158,4 @@ export async function addCommentToThread(
         } catch (error: any) {
             console.error(`Error while adding comment: ${error.message}`);
         }   
-}
-
-export async function fetchUserPosts(userId: string) {
-    try {
-        connectToDB();
-        //TODO populate community
-        //Find all threads authored by the user
-        const threads = await User.findOne({ id:userId })
-            .populate({
-                path: "threads",
-                model: Thread,
-                populate: {
-                    path: "children",
-                    model: Thread,
-                    populate: {
-                        path: "author",
-                        model: User,
-                        select: "name image id"
-                    }
-                }
-            })
-
-            return threads;
-    } catch (error:any) {
-        throw new Error(`Failed to fetch posts: ${error.message}`);
-    }
 }
