@@ -46,7 +46,7 @@ const ThreadCard = ({
                                 src={author.image}
                                 alt='user_community_image'
                                 fill
-                                className='cursor-pointer rounded-full'
+                                className='cursor-pointer rounded-full object-contain'
                             />
                         </Link>
                         <div className='thread-card_bar' />
