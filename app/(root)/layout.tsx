@@ -47,7 +47,7 @@ export default function RootLayout({
                   </div>
                 </section>
 
-                <RightSidebar />
+                {/* <RightSidebar /> */}
 
             </main>
 
